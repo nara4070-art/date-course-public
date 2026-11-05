@@ -22,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npx wrangler dev          # 로컬 실행 (Hyperdrive 바인딩 필요)
 npx wrangler deploy       # 배포 (= npm run deploy)
 npm test                  # 테스트 전체 (vitest run, 이 폴더만)
+npm run typecheck         # tsc --noEmit (src/)
 npm run test:watch        # 감시 모드
 npx vitest run -t "PUT"   # 이름으로 골라 실행
 ```
@@ -65,5 +66,7 @@ DATABASE_URL=postgresql://... node scripts/migrate.mjs [path/to/courses.json]
 - 에러는 `HttpError(status, 한국어 메시지)`를 throw → 최상위에서 `{error}` JSON으로 변환.
 
 ### 로그인 없는 버전 (`src/index.ts`)
-- 의도적으로 "레거시 스타일"로 작성된 단일 `fetch` 함수: `var` 전역 변수, `flag`/`resStatus`/`errMsg` 상태 변수, POST와 PUT에 검증 로직이 복붙되어 있음, `// @ts-nocheck`.
-- **주석이 코드와 다르다.** 헤더의 "MySQL 5.7", "최근 30일치만 조회", "메모는 최대 500자", "최대 50개", "id는 UUID 36자리" 등은 모두 사실이 아니다(실제: Postgres, 기간 필터만, 2000자, 30개, 12자 id). 항상 코드를 기준으로 판단할 것.
+- 로그인 버전과 같은 구조: `HttpError` throw → `fetch`에서 `{error}` JSON으로 변환, `route()`가 핸들러(`listCourses`/`createCourse`/`getCourse`/`updateCourse`/`deleteCourse`)로 분기.
+- POST와 PUT은 같은 `cleanCourse()`를 쓴다. 검증 순서(날짜 → 기분 → 제목 → 메모 → 장소 → 먹거리 → 최소 1개)가 곧 에러 우선순위다. 제한값은 파일 상단 `MAX_*` 상수.
+- 일부러 남겨 둔 동작(테스트로 고정됨, `docs/smells.md` 참고): `/api/health`는 메서드 무시, 지원 안 하는 메서드는 404, 라우팅 전에 DB 연결(DB 장애 시 모든 `/api/*`가 500), 인증·Origin 검사 없음, 기간 없는 목록은 전체 반환. 바꾸려면 별도 변경으로 하고 해당 테스트를 같이 고칠 것.
+- `npm run typecheck`(tsc, `src/`만)로 타입 검사. wrangler는 타입 검사를 하지 않는다.
