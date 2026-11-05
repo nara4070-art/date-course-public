@@ -5,13 +5,16 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "pg": "^8.16.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.15",
+    "@types/pg": "^8.23.1",
+    "typescript": "^7.0.2",
     "vitest": "^5.1.0"
   }
 }
