@@ -1,0 +1,16 @@
+{
+  // Pre-login version: served at the original URL.
+  "name": "date-course",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "hyperdrive": [
+    { "binding": "HYPERDRIVE", "id": "abe028abbe394df09ccd5c0b49b757ce" }
+  ]
+}

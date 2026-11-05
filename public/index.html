@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>데이트 코스 플래너</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
+<style>
+:root{
+  --bg:#fff7f8; --card:#ffffff; --ink:#2d2230; --muted:#7c6d80; --line:#f0dfe4;
+  --accent:#e2557a; --accent-soft:#fde6ec; --accent-ink:#b8325a; --ok:#2e8b6a; --warn:#c0392b;
+  --shadow:0 2px 10px rgba(180,60,100,.08); --radius:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+header{background:linear-gradient(135deg,#ff8fab,#e2557a);color:#fff;padding:18px 16px 0}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+header .wrap{padding:0}
+header h1{margin:0;font-size:1.45rem}
+header p{margin:2px 0 12px;opacity:.9;font-size:.92rem}
+.tabs{display:flex;gap:4px}
+.tab{border:0;background:rgba(255,255,255,.18);color:#fff;padding:10px 18px;border-radius:12px 12px 0 0;cursor:pointer;font-weight:600}
+.tab.active{background:var(--bg);color:var(--accent-ink)}
+main{padding:20px 0 60px}
+section.panel{display:none}
+section.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+h2{font-size:1.08rem;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+h2 .step{background:var(--accent);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-grid;place-items:center;font-size:.8rem}
+.muted{color:var(--muted);font-size:.88rem}
+.moods{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.mood{border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px;text-align:left;cursor:pointer;transition:.15s}
+.mood:hover{border-color:#f4a7bb}
+.mood.sel{border-color:var(--accent);background:var(--accent-soft)}
+.mood .e{font-size:1.6rem}
+.mood b{display:block;margin-top:2px}
+.mood small{color:var(--muted)}
+.conds{display:grid;gap:10px;margin-top:4px}
+.cond{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.cond > span{width:58px;font-weight:600;font-size:.92rem}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:.9rem}
+.chip.sel{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:10px 18px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.05)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--accent-ink);border:1px solid #f4b8c8}
+.btn.small{padding:6px 12px;font-size:.85rem}
+.btn.danger{background:#fff;color:var(--warn);border:1px solid #f0c0b8}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spacer{flex:1}
+.recs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.recs{grid-template-columns:1fr}}
+.rec-list{display:grid;gap:8px}
+.rec{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:#fff;text-align:left;width:100%}
+.rec:hover{border-color:#f4a7bb}
+.rec.sel{border-color:var(--accent);background:var(--accent-soft)}
+.rec .e{font-size:1.4rem;line-height:1.2}
+.rec b{display:block}
+.rec small{color:var(--muted)}
+.rec .tags{margin-top:3px;display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:.72rem;background:#f6eef1;color:var(--muted);border-radius:6px;padding:1px 6px}
+.rec .chk{margin-left:auto;font-size:1.1rem;color:var(--accent)}
+.course-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.course-list li{display:flex;align-items:center;gap:8px;background:#fff;border:1px dashed #f0c6d2;border-radius:10px;padding:7px 10px}
+.course-list li .kind{font-size:.72rem;border-radius:6px;padding:1px 6px;background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap}
+.course-list li .kind.food{background:#fff1dc;color:#a0621b}
+.course-list li .name{flex:1}
+.icon-btn{border:0;background:transparent;cursor:pointer;padding:2px 6px;border-radius:6px;color:var(--muted)}
+.icon-btn:hover{background:#f6eef1;color:var(--ink)}
+label.f{display:block;font-weight:600;font-size:.9rem;margin:10px 0 4px}
+input[type=text],input[type=date],textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid #f7b6c7;border-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:200px 1fr;gap:12px}
+@media (max-width:600px){.grid2{grid-template-columns:1fr}}
+.edit-banner{display:none;background:#fff4d6;border:1px solid #f1d58a;color:#7a5a00;border-radius:10px;padding:10px 14px;margin-bottom:14px}
+.edit-banner.show{display:flex}
+.empty{color:var(--muted);text-align:center;padding:18px;font-size:.92rem}
+/* 기록 보기 */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.seg{display:inline-flex;border:1px solid #f4b8c8;border-radius:10px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:8px 16px;cursor:pointer;color:var(--accent-ink);font-weight:600}
+.seg button.sel{background:var(--accent);color:#fff}
+.period{font-size:1.15rem;font-weight:700;min-width:200px;text-align:center}
+@media (max-width:600px){
+  .toolbar .seg{width:100%} .toolbar .seg button{flex:1}
+  .toolbar .spacer{display:none} .period{min-width:0;flex:1;font-size:1rem}
+}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.cal .dow{background:#fbeff3;text-align:center;font-weight:600;font-size:.82rem;padding:6px 0}
+.cal .dow.sun,.cal .day.sun .num{color:#d03a3a}
+.cal .dow.sat,.cal .day.sat .num{color:#2f62c9}
+.cal .day{min-height:96px;border-top:1px solid var(--line);border-left:1px solid var(--line);padding:4px 5px;cursor:pointer;overflow:hidden}
+.cal .day:nth-child(7n+1){border-left:0}
+.cal .day:hover{background:#fff6f8}
+.cal .day.other{background:#fbfafb}
+.cal .day.other .num{opacity:.4}
+.cal .day.today .num{background:var(--accent);color:#fff!important;border-radius:50%;width:24px;height:24px;display:inline-grid;place-items:center}
+.cal .num{font-size:.82rem;font-weight:600}
+.cal .ev{display:block;font-size:.74rem;background:var(--accent-soft);color:var(--accent-ink);border-radius:5px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .more{font-size:.72rem;color:var(--muted)}
+@media (max-width:600px){.cal .day{min-height:64px}.cal .ev{font-size:.66rem}}
+.week{display:grid;gap:10px}
+.wday{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.wday.today{border-color:var(--accent)}
+.wday h3{margin:0 0 6px;font-size:.95rem;display:flex;gap:8px;align-items:center}
+.wday h3 a{font-weight:400;font-size:.8rem;color:var(--accent-ink);cursor:pointer;text-decoration:underline}
+.entry{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;margin-bottom:10px}
+.entry .head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.entry .mood-badge{background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:2px 10px;font-size:.82rem;font-weight:600}
+.entry h4{margin:0;font-size:1.02rem}
+.entry .lists{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:600px){.entry .lists{grid-template-columns:1fr}}
+.entry .lists div b{font-size:.82rem;color:var(--muted)}
+.entry ol{margin:4px 0 0;padding-left:20px}
+.entry .memo{margin-top:10px;background:#fcf7f9;border-radius:8px;padding:8px 10px;white-space:pre-wrap;font-size:.92rem}
+.entry.compact{padding:10px 12px;margin-bottom:6px}
+.entry.compact .sum{font-size:.86rem;color:var(--muted);margin-top:4px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#2d2230;color:#fff;padding:10px 18px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;z-index:10;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>💕 데이트 코스 플래너</h1>
+    <p>오늘 기분에 맞는 장소와 먹거리를 추천받고, 우리만의 데이트 기록을 남겨요.</p>
+    <nav class="tabs">
+      <button class="tab active" data-tab="plan">📝 코스 짜기</button>
+      <button class="tab" data-tab="records">📅 기록 보기</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 코스 짜기 -->
+  <section class="panel active" id="panel-plan">
+    <div class="edit-banner" id="editBanner">
+      <span>✏️ 저장된 코스를 수정하고 있어요.</span><span class="spacer"></span>
+      <button class="btn small ghost" id="cancelEdit">수정 취소</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">1</span>오늘의 기분은 어때요?</h2>
+      <div class="moods" id="moods"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">2</span>원하는 조건을 골라 주세요</h2>
+      <div class="conds" id="conds"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="recBtn" disabled>✨ 추천받기</button>
+        <span class="muted" id="recHint">먼저 기분을 선택해 주세요.</span>
+      </div>
+    </div>
+
+    <div class="card" id="recCard" style="display:none">
+      <h2><span class="step">3</span>추천 장소 · 먹거리 <span class="spacer"></span>
+        <button class="btn small ghost" id="reshuffle">🔄 다른 추천 보기</button></h2>
+      <p class="muted" style="margin-top:-6px">마음에 드는 것을 눌러 코스에 담아요. (여러 개 선택 가능)</p>
+      <div class="recs">
+        <div><h3 style="margin:0 0 8px;font-size:.98rem">📍 장소</h3><div class="rec-list" id="recPlaces"></div></div>
+        <div><h3 style="margin:0 0 8px;font-size:.98rem">🍽️ 먹거리</h3><div class="rec-list" id="recFoods"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">4</span>우리의 데이트 코스</h2>
+      <ul class="course-list" id="courseList"></ul>
+      <div class="row" style="margin-top:10px">
+        <input type="text" id="customName" placeholder="직접 추가하기 (예: 성수동 그 카페)" style="flex:1;min-width:180px" maxlength="100">
+        <button class="btn small ghost" id="addPlace">+ 장소로</button>
+        <button class="btn small ghost" id="addFood">+ 먹거리로</button>
+      </div>
+
+      <div class="grid2" style="margin-top:6px">
+        <div><label class="f" for="date">날짜</label><input type="date" id="date"></div>
+        <div><label class="f" for="title">코스 이름 (선택)</label><input type="text" id="title" maxlength="100" placeholder="예: 비 오는 날 아늑한 데이트"></div>
+      </div>
+      <label class="f" for="memo">메모</label>
+      <textarea id="memo" maxlength="2000" placeholder="예약 시간, 준비물, 하고 싶은 말 등을 적어 두세요."></textarea>
+      <div class="row" style="margin-top:14px">
+        <span class="muted" id="saveHint"></span><span class="spacer"></span>
+        <button class="btn ghost" id="resetBtn">처음부터</button>
+        <button class="btn" id="saveBtn">💾 코스 저장하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 기록 보기 -->
+  <section class="panel" id="panel-records">
+    <div class="toolbar">
+      <div class="seg" id="viewSeg">
+        <button data-view="month" class="sel">월별</button>
+        <button data-view="week">주별</button>
+        <button data-view="day">일별</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn small ghost" id="prevBtn" aria-label="이전">◀</button>
+      <span class="period" id="period"></span>
+      <button class="btn small ghost" id="nextBtn" aria-label="다음">▶</button>
+      <button class="btn small ghost" id="todayBtn">오늘</button>
+    </div>
+    <div id="recordsBody"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== 추천 데이터 ===================== */
+const MOODS = [
+  {key:'tired',   e:'😴', name:'피곤해요',           desc:'무리하지 않는 편안한 데이트'},
+  {key:'excited', e:'💓', name:'설레요',             desc:'분위기 있고 특별한 하루'},
+  {key:'active',  e:'🏃', name:'활동적이에요',       desc:'몸을 움직이는 신나는 데이트'},
+  {key:'calm',    e:'🌿', name:'조용히 쉬고 싶어요', desc:'한적하고 여유로운 시간'},
+  {key:'refresh', e:'🌈', name:'기분 전환이 필요해요', desc:'새로운 자극으로 환기'},
+  {key:'hungry',  e:'😋', name:'맛있는 게 당겨요',   desc:'먹는 게 메인인 데이트'},
+];
+const COND_DEFS = [
+  {key:'env',    label:'장소',   opts:[['any','상관없음'],['in','실내'],['out','야외']]},
+  {key:'budget', label:'예산',   opts:[['any','상관없음'],['low','가볍게'],['mid','적당히'],['high','특별한 날']]},
+  {key:'time',   label:'시간대', opts:[['any','상관없음'],['day','낮'],['night','저녁·밤']]},
+];
+const LABEL = {in:'실내',out:'야외',low:'가볍게',mid:'적당히',high:'특별한 날',day:'낮',night:'저녁·밤'};
+// [이모지, 이름, 설명, 기분들, 실내/야외, 예산, 시간대]
+const PLACES = [
+  ['🎬','리클라이너 영화관','누워서 보듯 편하게 영화 한 편','tired calm excited','in','mid','any'],
+  ['📚','한적한 북카페','각자 책 읽다가 가끔 눈 맞추기','calm tired','in','low','day'],
+  ['🧖','찜질방 · 스파','뜨끈하게 몸 지지며 피로 풀기','tired calm','in','mid','any'],
+  ['🌳','동네 공원 산책','천천히 걸으며 도란도란 수다','calm tired refresh','out','low','day'],
+  ['🌉','강변 야경 산책','반짝이는 다리 불빛 아래 손잡고 걷기','excited calm refresh','out','low','night'],
+  ['🌆','루프톱 바','도시 야경과 함께 한 잔','excited','out','high','night'],
+  ['🎡','놀이공원','롤러코스터와 퍼레이드로 신나게','active excited refresh','out','high','day'],
+  ['🎳','볼링장','지는 사람이 저녁 사기 내기 한 판','active refresh','in','low','any'],
+  ['🧗','실내 클라이밍','서로 응원하며 벽 오르기','active','in','mid','any'],
+  ['🚲','강변 자전거 라이딩','바람 맞으며 달리기','active refresh','out','low','day'],
+  ['🏸','배드민턴 · 탁구장','가볍게 땀 흘리는 커플 대결','active','in','low','any'],
+  ['🎤','코인노래방','목청껏 부르며 스트레스 해소','refresh active','in','low','any'],
+  ['🖼️','미술관 · 전시회','작품 보며 서로의 취향 나누기','excited calm refresh','in','mid','day'],
+  ['🎨','원데이 공방 클래스','커플 반지 · 도자기 · 향수 만들기','excited refresh','in','mid','day'],
+  ['🌸','수목원 · 식물원','초록 속에서 느긋하게 힐링','calm excited refresh','out','low','day'],
+  ['🚗','근교 드라이브','좋아하는 노래 틀고 바다나 호수까지','refresh excited','out','mid','day'],
+  ['🔭','도심 전망대','도시를 한눈에 내려다보기','excited','in','mid','night'],
+  ['🎲','보드게임 카페','깔깔 웃으며 머리 쓰는 시간','refresh active tired','in','low','any'],
+  ['🐠','아쿠아리움','몽환적인 수조 앞에서 사진 찍기','excited refresh','in','high','day'],
+  ['🛍️','소품샵 골목 투어','귀여운 물건 구경하며 골목 산책','refresh excited','out','low','day'],
+  ['🧺','한강 피크닉','돗자리 깔고 누워 하늘 보기','calm tired hungry','out','low','day'],
+  ['🏮','야시장 구경','먹거리 천국에서 이것저것 맛보기','hungry refresh active','out','low','night'],
+  ['🍷','조용한 와인바','은은한 조명 아래 깊은 대화','excited calm','in','high','night'],
+  ['🎭','소극장 연극 · 뮤지컬','공연 보고 감상 나누기','excited refresh','in','mid','night'],
+  ['🏯','고궁 산책','한복 입고 예쁜 사진 남기기','excited calm','out','low','day'],
+  ['🛋️','만화카페','다락방에서 뒹굴뒹굴 만화 정주행','tired calm','in','low','any'],
+  ['🔐','방탈출 카페','둘이 힘을 합쳐 탈출하기','active refresh','in','mid','any'],
+  ['🍳','커플 쿠킹 클래스','함께 만들고 함께 먹기','hungry excited','in','mid','any'],
+  ['🚶','맛집 골목 탐방','걷다가 끌리는 곳에 들어가기','hungry active','out','low','any'],
+  ['🏨','호캉스','아무것도 안 하고 푹 쉬기','tired excited calm','in','high','any'],
+  ['🌌','교외 천문대 별 보기','쏟아지는 별 아래 둘만의 시간','excited calm','out','mid','night'],
+  ['💆','커플 마사지','뭉친 어깨 풀고 개운하게','tired','in','high','any'],
+];
+// [이모지, 이름, 설명, 기분들, 예산, 시간대]
+const FOODS = [
+  ['🍜','뜨끈한 쌀국수','속 편하고 든든한 한 그릇','tired calm','low','any'],
+  ['🍲','국밥 · 해장국','지친 몸을 데워 주는 국물','tired hungry','low','any'],
+  ['🥘','샤브샤브','천천히 익혀 먹는 여유','tired calm','mid','any'],
+  ['🍝','파스타 · 리조또','분위기 좋은 이탈리안','excited','mid','any'],
+  ['🥩','스테이크 코스','특별한 날의 정석','excited','high','night'],
+  ['🍣','스시 오마카세','한 점 한 점 감탄하며','excited hungry','high','any'],
+  ['🍕','화덕 피자','쭉 늘어나는 치즈에 기분 업','refresh hungry','mid','any'],
+  ['🍔','수제버거','운동 후 든든하게','active hungry','low','any'],
+  ['🍗','치킨과 맥주','오늘 하루 수고했다 치맥','active refresh','low','night'],
+  ['🥓','삼겹살','지글지글 구워 먹는 재미','active hungry','low','night'],
+  ['🌮','타코 · 멕시칸','새로운 맛으로 기분 전환','refresh','mid','any'],
+  ['🍛','인도 커리와 난','향신료 가득 이국적인 한 끼','refresh','mid','any'],
+  ['🥗','샐러드 · 포케','가볍고 상큼하게','active calm','low','day'],
+  ['🥞','브런치 카페','늦잠 자고 여유로운 브런치','calm excited','mid','day'],
+  ['🍰','디저트 카페','달콤한 케이크 나눠 먹기','excited calm tired','low','any'],
+  ['🍵','전통 찻집','따뜻한 차 한 잔과 조용한 대화','calm tired','low','day'],
+  ['🍢','떡볶이 · 길거리 간식','호호 불며 먹는 분식 투어','hungry refresh active','low','any'],
+  ['🍱','피크닉 도시락','김밥 · 샌드위치 싸 들고 나가기','calm tired','low','day'],
+  ['🦪','조개구이 · 해산물','바다 내음 가득 푸짐하게','hungry refresh','mid','night'],
+  ['🧀','와인과 치즈 플래터','천천히 음미하는 밤','excited calm','high','night'],
+  ['🍨','젤라또','걸으며 먹는 달콤한 한 컵','active refresh excited','low','day'],
+  ['🥟','딤섬','이것저것 골라 먹는 재미','hungry excited','mid','any'],
+  ['🍡','이자카야 · 꼬치','아늑한 분위기에서 한 잔','refresh calm','mid','night'],
+  ['🫓','파전과 막걸리','비 오는 날엔 역시','calm refresh','low','night'],
+  ['🛵','집에서 배달 야식','편한 옷 입고 영화 보며','tired','low','night'],
+  ['🧋','버블티 들고 산책','쫀득한 펄과 함께 걷기','active refresh','low','any'],
+  ['🍢','양꼬치','쯔란 듬뿍, 맥주 한 잔','hungry active','mid','night'],
+  ['🥐','베이커리 투어','갓 구운 빵 냄새 따라가기','hungry calm','low','day'],
+].map(f => [f[0],f[1],f[2],f[3],'any',f[4],f[5]]);
+
+/* ===================== 상태 ===================== */
+const $ = s => document.querySelector(s);
+const state = {
+  mood:null, cond:{env:'any',budget:'any',time:'any'},
+  course:[],            // {kind:'place'|'food', name}
+  editingId:null, recShown:false,
+  view:'month', cursor:new Date(),
+};
+const moodOf = k => MOODS.find(m => m.key === k) || {e:'💭', name:k};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseYmd = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const DOW = ['일','월','화','수','목','금','토'];
+const fmtLong = d => `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+
+function toast(msg, err=false){
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast show' + (err?' err':'');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.className = 'toast', 2400);
+}
+async function api(method, url, body){
+  const res = await fetch(url, {method, headers: body ? {'Content-Type':'application/json'} : {}, body: body ? JSON.stringify(body) : undefined});
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) throw new Error((data && data.error) || `요청 실패 (${res.status})`);
+  return data;
+}
+
+/* ===================== 탭 ===================== */
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-'+name));
+  if (name === 'records') loadRecords();
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+/* ===================== 코스 짜기 ===================== */
+function renderMoods(){
+  $('#moods').innerHTML = MOODS.map(m => `
+    <button class="mood ${state.mood===m.key?'sel':''}" data-mood="${m.key}">
+      <span class="e">${m.e}</span><b>${m.name}</b><small>${m.desc}</small></button>`).join('');
+  $('#moods').querySelectorAll('.mood').forEach(b => b.onclick = () => {
+    state.mood = b.dataset.mood; renderMoods();
+    $('#recBtn').disabled = false; $('#recHint').textContent = `${moodOf(state.mood).name} — 조건을 고르고 추천받아 보세요.`;
+    if (state.recShown) renderRecs();
+  });
+}
+function renderConds(){
+  $('#conds').innerHTML = COND_DEFS.map(c => `
+    <div class="cond"><span>${c.label}</span>${c.opts.map(([v,l]) =>
+      `<button class="chip ${state.cond[c.key]===v?'sel':''}" data-k="${c.key}" data-v="${v}">${l}</button>`).join('')}</div>`).join('');
+  $('#conds').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    state.cond[b.dataset.k] = b.dataset.v; renderConds(); if (state.recShown) renderRecs();
+  });
+}
+// 기분이 맞는 후보 중, 조건과 덜 어긋나는 순으로 정렬(동점은 무작위)
+function pick(items, n){
+  const {env,budget,time} = state.cond;
+  const miss = it => (env!=='any' && it[4]!=='any' && it[4]!==env ? 1:0)
+                   + (budget!=='any' && it[5]!==budget ? 1:0)
+                   + (time!=='any' && it[6]!=='any' && it[6]!==time ? 1:0);
+  return items.filter(it => it[3].split(' ').includes(state.mood))
+    .map(it => ({it, miss:miss(it), r:Math.random()}))
+    .sort((a,b) => a.miss-b.miss || a.r-b.r).slice(0,n);
+}
+function recHtml(list, kind){
+  if (!list.length) return '<div class="empty">조건에 맞는 추천이 없어요.</div>';
+  return list.map(({it,miss}) => {
+    const name = `${it[0]} ${it[1]}`;
+    const sel = state.course.some(c => c.kind===kind && c.name===name);
+    const tags = [it[4],it[5],it[6]].filter(v => v!=='any').map(v => `<span class="tag">${LABEL[v]}</span>`).join('');
+    return `<button class="rec ${sel?'sel':''}" data-kind="${kind}" data-name="${esc(name)}">
+      <span class="e">${it[0]}</span><span><b>${esc(it[1])}</b><small>${esc(it[2])}</small>
+      <span class="tags">${tags}${miss?'<span class="tag">조건과 조금 달라요</span>':''}</span></span>
+      <span class="chk">${sel?'✔':'＋'}</span></button>`;
+  }).join('');
+}
+function renderRecs(){
+  state.recShown = true; $('#recCard').style.display = '';
+  $('#recPlaces').innerHTML = recHtml(pick(PLACES,5),'place');
+  $('#recFoods').innerHTML  = recHtml(pick(FOODS,5),'food');
+  document.querySelectorAll('#recCard .rec').forEach(b => b.onclick = () => {
+    const {kind,name} = b.dataset;
+    const i = state.course.findIndex(c => c.kind===kind && c.name===name);
+    if (i>=0) state.course.splice(i,1); else state.course.push({kind,name});
+    b.classList.toggle('sel', i<0); b.querySelector('.chk').textContent = i<0 ? '✔' : '＋';
+    renderCourse();
+  });
+}
+$('#recBtn').onclick = () => { renderRecs(); $('#recCard').scrollIntoView({behavior:'smooth', block:'start'}); };
+$('#reshuffle').onclick = renderRecs;
+
+function renderCourse(){
+  const ul = $('#courseList');
+  if (!state.course.length){ ul.innerHTML = '<li class="empty" style="border:0;justify-content:center">아직 담은 장소·먹거리가 없어요. 추천에서 골라 보세요!</li>'; return; }
+  ul.innerHTML = state.course.map((c,i) => `
+    <li><span class="kind ${c.kind}">${c.kind==='place'?'장소':'먹거리'}</span>
+      <span class="name">${esc(c.name)}</span>
+      <button class="icon-btn" data-act="up" data-i="${i}" title="위로" ${i===0?'disabled':''}>▲</button>
+      <button class="icon-btn" data-act="down" data-i="${i}" title="아래로" ${i===state.course.length-1?'disabled':''}>▼</button>
+      <button class="icon-btn" data-act="del" data-i="${i}" title="빼기">✕</button></li>`).join('');
+  ul.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i, c = state.course;
+    if (b.dataset.act==='del') c.splice(i,1);
+    else { const j = b.dataset.act==='up' ? i-1 : i+1; [c[i],c[j]] = [c[j],c[i]]; }
+    renderCourse(); if (state.recShown) renderRecs();
+  });
+}
+function addCustom(kind){
+  const v = $('#customName').value.trim();
+  if (!v) { toast('추가할 이름을 입력해 주세요.', true); return; }
+  state.course.push({kind, name:v}); $('#customName').value = ''; renderCourse();
+}
+$('#addPlace').onclick = () => addCustom('place');
+$('#addFood').onclick = () => addCustom('food');
+$('#customName').onkeydown = e => { if (e.key==='Enter') addCustom('place'); };
+
+function resetForm(){
+  state.mood = null; state.cond = {env:'any',budget:'any',time:'any'}; state.course = [];
+  state.editingId = null; state.recShown = false;
+  $('#recCard').style.display = 'none'; $('#recBtn').disabled = true; $('#recHint').textContent = '먼저 기분을 선택해 주세요.';
+  $('#date').value = ymd(new Date()); $('#title').value = ''; $('#memo').value = '';
+  $('#editBanner').classList.remove('show'); $('#saveBtn').textContent = '💾 코스 저장하기';
+  renderMoods(); renderConds(); renderCourse();
+}
+$('#resetBtn').onclick = () => { if (!state.course.length || confirm('입력한 내용을 모두 지울까요?')) resetForm(); };
+$('#cancelEdit').onclick = () => { resetForm(); showTab('records'); };
+
+$('#saveBtn').onclick = async () => {
+  if (!state.mood) { toast('오늘의 기분을 먼저 선택해 주세요.', true); $('#moods').scrollIntoView({behavior:'smooth'}); return; }
+  if (!state.course.length) { toast('장소나 먹거리를 하나 이상 담아 주세요.', true); return; }
+  if (!$('#date').value) { toast('날짜를 선택해 주세요.', true); return; }
+  const body = {
+    date:$('#date').value, mood:state.mood, title:$('#title').value.trim(), memo:$('#memo').value.trim(),
+    places:state.course.filter(c => c.kind==='place').map(c => c.name),
+    foods:state.course.filter(c => c.kind==='food').map(c => c.name),
+  };
+  $('#saveBtn').disabled = true;
+  try {
+    const editing = !!state.editingId;
+    const saved = editing ? await api('PUT', `/api/courses/${state.editingId}`, body) : await api('POST', '/api/courses', body);
+    toast(editing ? '코스를 수정했어요 ✏️' : '데이트 코스를 저장했어요 💕');
+    resetForm();
+    state.view = 'day'; state.cursor = parseYmd(saved.date); showTab('records');
+  } catch (e) { toast(e.message, true); }
+  finally { $('#saveBtn').disabled = false; }
+};
+
+function startEdit(c){
+  resetForm();
+  state.editingId = c.id; state.mood = c.mood;
+  state.course = [...(c.places||[]).map(name => ({kind:'place',name})), ...(c.foods||[]).map(name => ({kind:'food',name}))];
+  $('#date').value = c.date; $('#title').value = c.title || ''; $('#memo').value = c.memo || '';
+  $('#recBtn').disabled = false; $('#recHint').textContent = '추천을 다시 받아 코스에 더 담을 수도 있어요.';
+  $('#editBanner').classList.add('show'); $('#saveBtn').textContent = '💾 수정 내용 저장';
+  renderMoods(); renderCourse(); showTab('plan');
+}
+
+/* ===================== 기록 보기 ===================== */
+let records = [];   // 현재 기간의 기록
+function rangeOf(){
+  const c = state.cursor;
+  if (state.view==='month'){
+    const first = new Date(c.getFullYear(), c.getMonth(), 1), last = new Date(c.getFullYear(), c.getMonth()+1, 0);
+    return {from:addDays(first,-first.getDay()), to:addDays(last,6-last.getDay())};
+  }
+  if (state.view==='week'){ const s = addDays(c,-c.getDay()); return {from:s, to:addDays(s,6)}; }
+  return {from:c, to:c};
+}
+function periodLabel(){
+  const c = state.cursor;
+  if (state.view==='month') return `${c.getFullYear()}년 ${c.getMonth()+1}월`;
+  if (state.view==='week'){ const {from,to} = rangeOf(); return `${from.getMonth()+1}.${from.getDate()} ~ ${to.getMonth()+1}.${to.getDate()} (${from.getFullYear()})`; }
+  return fmtLong(c);
+}
+async function loadRecords(){
+  document.querySelectorAll('#viewSeg button').forEach(b => b.classList.toggle('sel', b.dataset.view===state.view));
+  $('#period').textContent = periodLabel();
+  const {from,to} = rangeOf();
+  try {
+    records = (await api('GET', `/api/courses?from=${ymd(from)}&to=${ymd(to)}`)).items || [];
+  } catch (e) { $('#recordsBody').innerHTML = `<div class="card empty">기록을 불러오지 못했어요: ${esc(e.message)}<br>서버가 켜져 있는지 확인해 주세요.</div>`; return; }
+  ({month:renderMonth, week:renderWeek, day:renderDay})[state.view]();
+}
+const byDate = d => records.filter(r => r.date === ymd(d));
+const titleOf = r => r.title || [...(r.places||[]), ...(r.foods||[])][0] || '데이트';
+
+function renderMonth(){
+  const {from,to} = rangeOf(), today = ymd(new Date()), m = state.cursor.getMonth();
+  let html = DOW.map((d,i) => `<div class="dow ${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('');
+  for (let d = new Date(from); d <= to; d = addDays(d,1)){
+    const evs = byDate(d), dow = d.getDay();
+    html += `<div class="day ${d.getMonth()!==m?'other':''} ${ymd(d)===today?'today':''} ${dow===0?'sun':dow===6?'sat':''}" data-date="${ymd(d)}">
+      <span class="num">${d.getDate()}</span>
+      ${evs.slice(0,2).map(r => `<span class="ev" title="${esc(titleOf(r))}">${moodOf(r.mood).e} ${esc(titleOf(r))}</span>`).join('')}
+      ${evs.length>2?`<span class="more">+${evs.length-2}개 더</span>`:''}</div>`;
+  }
+  const cnt = records.filter(r => parseYmd(r.date).getMonth()===m).length;
+  $('#recordsBody').innerHTML = `<p class="muted" style="margin:0 0 8px">이번 달 데이트 ${cnt}번 · 날짜를 누르면 그날의 코스를 볼 수 있어요.</p><div class="cal">${html}</div>`;
+  document.querySelectorAll('.cal .day').forEach(el => el.onclick = () => { state.view='day'; state.cursor = parseYmd(el.dataset.date); loadRecords(); });
+}
+function renderWeek(){
+  const {from} = rangeOf(), today = ymd(new Date());
+  let html = '';
+  for (let i=0;i<7;i++){
+    const d = addDays(from,i), evs = byDate(d);
+    html += `<div class="wday ${ymd(d)===today?'today':''}"><h3>${d.getMonth()+1}월 ${d.getDate()}일 (${DOW[d.getDay()]})
+      ${evs.length?`<a data-date="${ymd(d)}">자세히</a>`:''}</h3>
+      ${evs.length ? evs.map(r => entryHtml(r,true)).join('') : '<span class="muted">기록 없음</span>'}</div>`;
+  }
+  $('#recordsBody').innerHTML = `<div class="week">${html}</div>`;
+  document.querySelectorAll('.wday h3 a').forEach(a => a.onclick = () => { state.view='day'; state.cursor = parseYmd(a.dataset.date); loadRecords(); });
+  bindEntryButtons();
+}
+function renderDay(){
+  const evs = byDate(state.cursor);
+  $('#recordsBody').innerHTML = evs.length ? evs.map(r => entryHtml(r,false)).join('')
+    : `<div class="card empty">이 날은 저장된 데이트 코스가 없어요.<br><br><button class="btn small" id="planThisDay">이 날짜로 코스 짜기</button></div>`;
+  const b = $('#planThisDay');
+  if (b) b.onclick = () => { resetForm(); $('#date').value = ymd(state.cursor); showTab('plan'); };
+  bindEntryButtons();
+}
+function entryHtml(r, compact){
+  const m = moodOf(r.mood), places = r.places||[], foods = r.foods||[];
+  const btns = `<span class="spacer"></span><button class="btn small ghost" data-edit="${r.id}">수정</button><button class="btn small danger" data-del="${r.id}">삭제</button>`;
+  if (compact) return `<div class="entry compact"><div class="head"><span class="mood-badge">${m.e} ${esc(m.name)}</span><h4>${esc(titleOf(r))}</h4>${btns}</div>
+      <div class="sum">${[...places, ...foods].map(esc).join(' → ')}</div></div>`;
+  const ol = arr => arr.length ? `<ol>${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ol>` : '<div class="muted">없음</div>';
+  return `<div class="entry"><div class="head"><span class="mood-badge">${m.e} ${esc(m.name)}</span><h4>${esc(r.title || '이름 없는 코스')}</h4>${btns}</div>
+    <div class="lists"><div><b>📍 장소</b>${ol(places)}</div><div><b>🍽️ 먹거리</b>${ol(foods)}</div></div>
+    ${r.memo ? `<div class="memo">📝 ${esc(r.memo)}</div>` : ''}</div>`;
+}
+function bindEntryButtons(){
+  document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { const r = records.find(x => x.id===b.dataset.edit); if (r) startEdit(r); });
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    const r = records.find(x => x.id===b.dataset.del);
+    if (!r || !confirm(`${fmtLong(parseYmd(r.date))}의 "${titleOf(r)}" 코스를 삭제할까요?`)) return;
+    try { await api('DELETE', `/api/courses/${r.id}`); toast('코스를 삭제했어요.'); loadRecords(); }
+    catch (e) { toast(e.message, true); }
+  });
+}
+document.querySelectorAll('#viewSeg button').forEach(b => b.onclick = () => { state.view = b.dataset.view; loadRecords(); });
+function move(dir){
+  const c = new Date(state.cursor);
+  if (state.view==='month') state.cursor = new Date(c.getFullYear(), c.getMonth()+dir, 1);
+  else state.cursor = addDays(c, state.view==='week' ? 7*dir : dir);
+  loadRecords();
+}
+$('#prevBtn').onclick = () => move(-1);
+$('#nextBtn').onclick = () => move(1);
+$('#todayBtn').onclick = () => { state.cursor = new Date(); loadRecords(); };
+
+resetForm();
+</script>
+</body>
+</html>
